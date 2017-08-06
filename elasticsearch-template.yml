@@ -1,0 +1,36 @@
+---
+# Deploy via:
+# aws cloudformation create-stack --stack-name elasticsearch --template-body  file://./elasticsearch-template.yml --parameters ParameterKey=KeyName,ParameterValue=gen_key_pair
+Parameters:
+  KeyName: {Description: The EC2 Key Pair for SSH access, Type: 'AWS::EC2::KeyPair::KeyName'}
+Resources:
+  ElasticsearchDomain:
+    Type: "AWS::Elasticsearch::Domain"
+    Properties:
+      DomainName: "escluster"
+      ElasticsearchVersion: "5.3"
+      ElasticsearchClusterConfig:
+        DedicatedMasterEnabled: "true"
+        InstanceCount: "2"
+        ZoneAwarenessEnabled: "true"
+        InstanceType: "t2.medium.elasticsearch"
+        DedicatedMasterType: "t2.medium.elasticsearch"
+        DedicatedMasterCount: "3"
+      EBSOptions:
+        EBSEnabled: true
+        Iops: 0
+        VolumeSize: 20
+        VolumeType: "gp2"
+      SnapshotOptions:
+        AutomatedSnapshotStartHour: "0"
+      AccessPolicies:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              AWS: "arn:aws:iam::511905922787:user/admin"
+            Action: "es:*"
+            Resource: "arn:aws:es:us-east-1:846973539254:domain/escluster/*"
+      AdvancedOptions:
+        rest.action.multi.allow_explicit_index: "true"
